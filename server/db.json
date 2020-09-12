@@ -1,0 +1,135 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "lilbuddy",
+      "email": "qwen@lilbuddy.biz",
+      "password": "qwenj123"
+    },
+    {
+      "id": 2,
+      "username": "lizbot",
+      "email": "liz@lilbuddy.biz",
+      "password": "qwenj123"
+    },
+    {
+      "id": 3,
+      "username": "aryehbot",
+      "email": "aryehbot@lilbuddy.biz",
+      "password": "qwenj123"
+    },
+    {
+      "username": "bonjay",
+      "email": "bonjay@bonjay.biz",
+      "password": "bonjay123",
+      "id": 4
+    },
+    {
+      "username": "qwenjay1",
+      "email": "bonjay@bonjay.biz",
+      "password": "bonjay123",
+      "id": 5
+    },
+    {
+      "username": "qwenjay2",
+      "email": "bonjay@bonjay.biz",
+      "password": "bonjay123",
+      "id": 6
+    },
+    {
+      "username": "qwenjay3",
+      "email": "bonjay@bonjay.biz",
+      "password": "bonjay123",
+      "id": 7
+    },
+    {
+      "username": "qwenjay4",
+      "email": "bonjay@bonjay.biz",
+      "password": "bonjay123",
+      "id": 8
+    },
+    {
+      "username": "qwenjay5",
+      "email": "bonjay@bonjay.biz",
+      "password": "bonjay123",
+      "id": 9
+    }
+  ],
+  "races": [
+    {
+      "userId": 1,
+      "id": 1,
+      "date": "Aug 1, 2021",
+      "type": "5k",
+      "time": "21min"
+    },
+    {
+      "userId": 1,
+      "id": 2,
+      "date": "Sept 1, 2028",
+      "type": "half marathon",
+      "time": "22min"
+    },
+    {
+      "userId": 3,
+      "id": 3,
+      "date": "Dec 1, 2020",
+      "type": "10k",
+      "time": "23min"
+    },
+    {
+      "userId": 3,
+      "id": 4,
+      "date": "June 1, 2021",
+      "type": "1 mile",
+      "time": "21min"
+    },
+    {
+      "userId": 3,
+      "id": 5,
+      "date": "April 1, 2021",
+      "type": "marathon",
+      "time": "60min"
+    },
+    {
+      "userId": 2,
+      "id": 6,
+      "date": "July 1, 2021",
+      "type": "5k",
+      "time": "20min"
+    },
+    {
+      "userId": 2,
+      "id": 7,
+      "date": "Dec 1, 2021",
+      "type": "5k",
+      "time": "20min"
+    }
+  ],
+  "goals": [
+    {
+      "userId": 1,
+      "id": 1,
+      "type": "5k",
+      "time": "18min"
+    },
+    {
+      "userId": "1",
+      "id": 2,
+      "type": "10k",
+      "time": "42min"
+    },
+    {
+      "userId": "1",
+      "id": 3,
+      "type": "10k",
+      "time": "42min"
+    },
+    {
+      "userId": "1",
+      "id": 4,
+      "type": "half marathon",
+      "time": "1hr 31 min"
+    }
+  ]
+}
