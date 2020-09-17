@@ -10,6 +10,7 @@ const {
   GraphQLList
 } = graphql;
 
+
 //User Type
 const UserType = new GraphQLObjectType({ 
   name: 'User',
