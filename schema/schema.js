@@ -1,5 +1,6 @@
 const graphql = require('graphql');
 const axios = require('axios');
+const { globalIdField } = require('graphql-relay');
 
 const {
   GraphQLObjectType,
@@ -11,12 +12,50 @@ const {
 } = graphql;
 
 
+/**
+ * We get the node interface and field from the relay library.
+ *
+ * The first method is the way we resolve an ID to its object. The second is the
+ * way we resolve an object that implements node to its type.
+ */
+
+const { nodeInterface, nodeField } = nodeDefinitions(
+  (globalId) => {
+    const { type, id } = fromGlobalId(globalId);
+    if (type === "User") {
+      return getUser(id);
+    }
+    if (type === "Race") {
+      return getRace(id);
+    }
+    if (type === "Goal") {
+      return getGoal(id);
+    }
+  },
+  //we have two one to many relationships so how is this gonna work?
+  (obj) => (obj.ships ? factionType : shipType)
+);
+
+
+/**
+ * We define our basic user type.
+ *
+ * This implements the following type system shorthand:
+ *   type Ship : Node {
+ *     id: String!
+ *     name: String
+ *   }
+ */
+
+
 //User Type
 const UserType = new GraphQLObjectType({ 
   name: 'User',
+  description: 'A user who loves to run',
+  interfaces: [nodeInterface],
   fields: () => ({
-    id: { type: GraphQLInt },
-    username: { type: GraphQLString },
+    id: globalIdField(),
+    username: { type: GraphQLString, description: 'The name of the user' },
     email: { type: GraphQLString },
     password: { type: GraphQLString },
     races: {
@@ -35,6 +74,34 @@ const UserType = new GraphQLObjectType({
     }
   })
 });
+
+/**
+ * We define a connection between a user and its races.
+ * We define a connection between a faction and its ships.
+ *
+ * connectionType implements the following type system shorthand:
+ *   type ShipConnection {
+ *     edges: [ShipEdge]
+ *     pageInfo: PageInfo!
+ *   }
+ *
+ * connectionType has an edges field - a list of edgeTypes that implement the
+ * following type system shorthand:
+ *   type ShipEdge {
+ *     cursor: String!
+ *     node: Ship
+ *   }
+ */
+
+ const { connectionType: raceConnection } = connectionDefinitions({
+   nodeType: raceType,
+ });
+
+ const { connectionType: goalConnection } = connectionDefinitions({
+   nodeType: goalType,
+ });
+
+
 
 const GoalType = new GraphQLObjectType({
   name: 'Goal',
