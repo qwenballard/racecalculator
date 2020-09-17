@@ -1,6 +1,6 @@
 const graphql = require('graphql');
 const axios = require('axios');
-const { globalIdField } = require('graphql-relay');
+const { globalIdField, connectionArgs, connectionFromArray } = require('graphql-relay');
 
 const {
   GraphQLObjectType,
@@ -38,7 +38,7 @@ const { nodeInterface, nodeField } = nodeDefinitions(
 
 
 /**
- * We define our basic user type.
+ * We define our basic  goal, race, (ship) type.
  *
  * This implements the following type system shorthand:
  *   type Ship : Node {
@@ -47,33 +47,30 @@ const { nodeInterface, nodeField } = nodeDefinitions(
  *   }
  */
 
-
-//User Type
-const UserType = new GraphQLObjectType({ 
-  name: 'User',
-  description: 'A user who loves to run',
+const GoalType = new GraphQLObjectType({
+  name: "Goal",
+  description: 'A goal for a specific user',
   interfaces: [nodeInterface],
   fields: () => ({
+    userId: { type: GraphQLInt },
     id: globalIdField(),
-    username: { type: GraphQLString, description: 'The name of the user' },
-    email: { type: GraphQLString },
-    password: { type: GraphQLString },
-    races: {
-      type: new GraphQLList(RaceType),
-      resolve(parentValue, args){
-        return axios.get(`http://localhost:3000/users/${parentValue.id}/races`)
-        .then(res => res.data);
-      }
-    },
-    goals: {
-      type: new GraphQLList(GoalType),
-      resolve(parentValue, args) {
-        return axios.get(`http://localhost:3000/users/${parentValue.id}/goals`)
-        .then(res => res.data);
-      }
-    }
+    type: { type: GraphQLString },
+    time: { type: GraphQLString },
   })
 });
+
+const RaceType = new GraphQLObjectType({
+  name: "Race",
+  description: 'A race for a specific user',
+  interfaces: [nodeInterface],
+  fields: () => ({
+    id: globalId(),
+    date: { type: GraphQLString },
+    type: { type: GraphQLString },
+    time: { type: GraphQLString },
+  })
+});
+
 
 /**
  * We define a connection between a user and its races.
@@ -101,59 +98,75 @@ const UserType = new GraphQLObjectType({
    nodeType: goalType,
  });
 
+ /**
+ * We define our basic user type.
+ *
+ * This implements the following type system shorthand:
+ *   type Ship : Node {
+ *     id: String!
+ *     name: String
+ *   }
+ */
 
 
-const GoalType = new GraphQLObjectType({
-  name: 'Goal',
+//User Type
+const UserType = new GraphQLObjectType({ 
+  name: 'User',
+  description: 'A user who loves to run',
+  interfaces: [nodeInterface],
   fields: () => ({
-    userId: { type: GraphQLInt },
-    id: { type: GraphQLInt },
-    type: { type: GraphQLString },
-    time: { type: GraphQLString },
-    user: {
-      type : UserType,
-      resolve(parentValue, args){
-        return axios.get(`http://localhost:3000/users/${parentValue.id}`)
-        .then(res => res.data);
-      }
-    }
+    id: globalIdField(),
+    username: { type: GraphQLString, description: 'The name of the user' },
+    email: { type: GraphQLString },
+    password: { type: GraphQLString },
+    races: {
+      type: raceConnection,
+      description: 'The races for a specific user',
+      args: connectionArgs,
+      resolve: (user, args) =>
+       connectionFromArray(user.races.map(getRace), args),
+    },
+    goals: {
+      type: goalConnection,
+      description: 'The goals for a specific user',
+      args: connectionArgs,
+      resolve: (parentValue, args) =>
+        connectionFromArray(user.goals.map(getGoal), args),
+    },
   })
 });
 
-const RaceType = new GraphQLObjectType({
-  name: 'Race',
-  fields: () => ({
-    id: { type: GraphQLInt },
-    date: { type: GraphQLString },
-    type: { type: GraphQLString },
-    time: { type: GraphQLString },
-    user: {
-      type: UserType,
-      resolve(parentValue, args){
-        return axios.get(`http://localhost:3000/users/${parentValue.id}`)
-        .then(res => res.data);
-      }
-    }
-  })
-});
+/**
+ * This is the type that will be the root of our query, and the
+ * entry point into our schema.
+ *
+ * This implements the following type system shorthand:
+ *   type Query {
+ *     rebels: Faction
+ *     empire: Faction
+ *     node(id: String!): Node
+ *   }
+ */
 
-const RootQuery = new GraphQLObjectType({ //root query allows us to jump into the graph. Entry point to a specific node.
-  name: 'RootQueryType',
-  fields: {
+const queryType = new GraphQLObjectType({ //root query allows us to jump into the graph. Entry point to a specific node.
+  name: 'Query',
+  fields: () => ({
     user: {
       type: UserType,
       args: { id: { type: GraphQLInt } },
-      resolve(parentValue, args) { //purpose is to actually get out there and get the data
+      resolve: (parentValue, args) => { //purpose is to actually get out there and get the data
         // explore fetch vs axios here... we used pg when dealing with postgres... returned as a promise
+        //They are doing something slightly different. Ask Qwen and Liz
         return axios.get(`http://localhost:3000/users/${args.id}`)
           .then(res => res.data);
       }
-    }
-  },
+    },
+    node: nodeField,
+  })
 });
 
 const mutation = new GraphQLObjectType({
-  name: 'Mutation',
+  name: "Mutation",
   fields: {
     addUser: {
       type: UserType,
@@ -163,25 +176,61 @@ const mutation = new GraphQLObjectType({
         password: { type: new GraphQLNonNull(GraphQLString) },
       },
       resolve(parent, { username, email, password }) {
-        return axios.post(`http://localhost:3000/users`, { username, email, password })
-          .then(res => res.data)
-      }
+        return axios
+          .post(`http://localhost:3000/users`, { username, email, password })
+          .then((res) => res.data);
+      },
     },
     deleteUser: {
       type: UserType,
       args: {
-        id: { type: new GraphQLNonNull(GraphQLInt) }
+        id: { type: new GraphQLNonNull(GraphQLInt) },
       },
       resolve(parent, args) {
-        console.log(args)
-        return axios.delete(`http://localhost:3000/users/${args.id}`)
-          .then(res => {
+        console.log(args);
+        return axios
+          .delete(`http://localhost:3000/users/${args.id}`)
+          .then((res) => {
             return res.data;
-          })
-      }
-    }
-  }
-})
+          });
+      },
+    },
+  },
+});
+
+// const mutation = new GraphQLObjectType({
+//   name: 'Mutation',
+//   fields: {
+//     addUser: {
+//       type: UserType,
+//       args: {
+//         username: { type: new GraphQLNonNull(GraphQLString) },
+//         email: { type: new GraphQLNonNull(GraphQLString) },
+//         password: { type: new GraphQLNonNull(GraphQLString) },
+//       },
+//       resolve(parent, { username, email, password }) {
+//         return axios.post(`http://localhost:3000/users`, { username, email, password })
+//           .then(res => res.data)
+//       }
+//     },
+//     deleteUser: {
+//       type: UserType,
+//       args: {
+//         id: { type: new GraphQLNonNull(GraphQLInt) }
+//       },
+//       resolve(parent, args) {
+//         console.log(args)
+//         return axios.delete(`http://localhost:3000/users/${args.id}`)
+//           .then(res => {
+//             return res.data;
+//           })
+//       }
+//     }
+//   }
+// })
+
+
+// const Mutation = new Gr
 
 module.exports = new GraphQLSchema({
   query: RootQuery,
