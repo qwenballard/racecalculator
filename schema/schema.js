@@ -116,6 +116,7 @@ const UserType = new GraphQLObjectType({
   interfaces: [nodeInterface],
   fields: () => ({
     id: globalIdField(),
+    user_id: { type: GraphQLInt },
     username: { type: GraphQLString, description: 'The name of the user' },
     email: { type: GraphQLString },
     password: { type: GraphQLString },
@@ -148,6 +149,8 @@ const UserType = new GraphQLObjectType({
  *   }
  */
 
+
+
 const queryType = new GraphQLObjectType({ //root query allows us to jump into the graph. Entry point to a specific node.
   name: 'Query',
   fields: () => ({
@@ -165,74 +168,103 @@ const queryType = new GraphQLObjectType({ //root query allows us to jump into th
   })
 });
 
-const mutation = new GraphQLObjectType({
-  name: "Mutation",
-  fields: {
-    addUser: {
-      type: UserType,
-      args: {
-        username: { type: new GraphQLNonNull(GraphQLString) },
-        email: { type: new GraphQLNonNull(GraphQLString) },
-        password: { type: new GraphQLNonNull(GraphQLString) },
-      },
-      resolve(parent, { username, email, password }) {
-        return axios
-          .post(`http://localhost:3000/users`, { username, email, password })
-          .then((res) => res.data);
-      },
+
+/* 
+  id
+  user_id: { type: GraphQLInt },
+  username: { type: GraphQLString, description: 'The name of the user' },
+  email: { type: GraphQLString },
+  password: { type: GraphQLString },
+  races
+  goals
+*/
+//Add User
+const AddUserMutation = mutationWithClientMutationId({
+  name: "addUser",
+  inputFields: {
+    id: {
+      type: new GraphQLNonNull(GraphQLString),
     },
-    deleteUser: {
-      type: UserType,
-      args: {
-        id: { type: new GraphQLNonNull(GraphQLInt) },
-      },
-      resolve(parent, args) {
-        console.log(args);
-        return axios
-          .delete(`http://localhost:3000/users/${args.id}`)
-          .then((res) => {
-            return res.data;
-          });
-      },
+    user_id: {
+      type: new GraphQLNonNull(GraphQLID),
     },
+    username: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    email: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    password: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
+  },
+  outputFields: {
+    username: {
+      type: userType,
+      resolve: (payload) => getUser(payload.userId), 
+    },
+    email: {
+      type: raceType,
+      resolve: (payload) => getRace(payload.raceId),
+    },
+    password: {
+      type: goalsType,
+      resolve: (payload) => getGoals(payload.goalsId),
+    },
+  },
+  mutateAndGetPayload: ({ shipName, factionId }) => {
+    const newShip = createShip(shipName, factionId);
+    return {
+      shipId: newShip.id,
+      factionId,
+    };
   },
 });
 
-// const mutation = new GraphQLObjectType({
-//   name: 'Mutation',
-//   fields: {
-//     addUser: {
-//       type: UserType,
-//       args: {
-//         username: { type: new GraphQLNonNull(GraphQLString) },
-//         email: { type: new GraphQLNonNull(GraphQLString) },
-//         password: { type: new GraphQLNonNull(GraphQLString) },
-//       },
-//       resolve(parent, { username, email, password }) {
-//         return axios.post(`http://localhost:3000/users`, { username, email, password })
-//           .then(res => res.data)
-//       }
+//delete user
+// const RemoveUserMutation = mutationWithClientMutationId({
+//   name: "removeUser",
+//   inputFields: {
+//     shipName: {
+//       type: new GraphQLNonNull(GraphQLString),
 //     },
-//     deleteUser: {
-//       type: UserType,
-//       args: {
-//         id: { type: new GraphQLNonNull(GraphQLInt) }
-//       },
-//       resolve(parent, args) {
-//         console.log(args)
-//         return axios.delete(`http://localhost:3000/users/${args.id}`)
-//           .then(res => {
-//             return res.data;
-//           })
-//       }
-//     }
-//   }
-// })
+//     factionId: {
+//       type: new GraphQLNonNull(GraphQLID),
+//     },
+//   },
+//   outputFields: {
+//     ship: {
+//       type: shipType,
+//       resolve: (payload) => getShip(payload.shipId),
+//     },
+//     faction: {
+//       type: factionType,
+//       resolve: (payload) => getFaction(payload.factionId),
+//     },
+//   },
+//   mutateAndGetPayload: ({ shipName, factionId }) => {
+//     const newShip = createShip(shipName, factionId);
+//     return {
+//       shipId: newShip.id,
+//       factionId,
+//     };
+//   },
+// });
 
 
-// const Mutation = new Gr
+const mutationType = new GraphQLObjectType({
+  name: "Mutation",
+  fields: () => ({
+    addUser: AddUserMutation,
+    removeUser: RemoveUserMutation,
+  }),
+});
 
 module.exports = new GraphQLSchema({
-  query: RootQuery,
-  mutation
+  query: queryType,
+  mutation: mutationType
 });
+
+
+
+//go back and put user ID where its needed
