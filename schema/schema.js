@@ -1,26 +1,31 @@
-const graphql = require('graphql');
-const axios = require('axios');
 
 const {
-  GraphQLObjectType,
-  GraphQLInt,
-  GraphQLString,
   GraphQLSchema,
-  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLString,
+  GraphQLInt,
   GraphQLList,
-  GraphQLID
-} = graphql;
+  GraphQLBoolean,
+  GraphQLEnumType
+} = require('graphql');
 
-const { 
-  nodeDefinitions, 
-  connectionDefinitions,
-  connectionArgs,
+const {
+  mutationWithClientMutationId,
   globalIdField,
   fromGlobalId,
+  nodeDefinitions,
+  connectionDefinitions,
+  connectionArgs,
   connectionFromArray,
-  mutationWithClientMutationId,
+  connectionFromPromisedArray
 } = require('graphql-relay');
 
+const axios = require('axios');
+const {
+  getRaces,
+  getUser,
+  getRace,
+} = require('./helpers');
 /**
  * We get the node interface and field from the relay library.
  *
@@ -31,28 +36,23 @@ const {
 const { nodeInterface, nodeField } = nodeDefinitions(
   (globalId) => {
     const { type, id } = fromGlobalId(globalId);
-    if (type === "User") {
-      //this is where we need interact with our database to grab information
+    if (type === 'User') {
+      // this is where we need interact with our database to grab information
       // return getUser(id);
-      return axios
-        .get(`http://localhost:3000/users/${id}`)
-        .then((res) => res.data);
+      return getUser(id);
     }
-    if (type === "Race") {
-      //this is where we need interact with our database to grab information
+    if (type === 'Race') {
+      // this is where we need interact with our database to grab information
       // return getRace(id);
-      return axios
-        .get(`http://localhost:3000/$/races/${id}`)
-        .then((res) => res.data);
+      return getRace(id);
     }
     // if (type === "Goal") {
     //   return getGoal(id);
     // }
   },
-  //we have a one to many relationships so how is this gonna work?
-  (obj) => (obj.type ? UserType : RaceType)
+  // we have a one to many relationships so how is this gonna work?
+  (obj) => (obj.type ? UserType : RaceType),
 );
-
 
 /**
  * We define our basic  goal, race, (ship) type.
@@ -76,20 +76,18 @@ const { nodeInterface, nodeField } = nodeDefinitions(
 //   })
 // });
 
-
-//We need to make sure this type is connected to our User object
+// We need to make sure this type is connected to our User object
 const RaceType = new GraphQLObjectType({
-  name: "Race",
+  name: 'Race',
   description: 'A race for a specific user',
   interfaces: [nodeInterface],
   fields: () => ({
-    id: globalIdField('Race', obj => obj.id),
+    id: globalIdField('Race', (obj) => obj.id),
     date: { type: GraphQLString },
     type: { type: GraphQLString },
     time: { type: GraphQLString },
-  })
+  }),
 });
-
 
 /**
  * We define a connection between a user and its races.
@@ -109,15 +107,15 @@ const RaceType = new GraphQLObjectType({
  *   }
  */
 
- const { connectionType: raceConnection } = connectionDefinitions({
-   nodeType: RaceType,
- });
+const { connectionType: raceConnection } = connectionDefinitions({
+  nodeType: RaceType,
+});
 
 //  const { connectionType: goalConnection } = connectionDefinitions({
 //    nodeType: goalType,
 //  });
 
- /**
+/**
  * We define our basic user type.
  *
  * This implements the following type system shorthand:
@@ -127,24 +125,23 @@ const RaceType = new GraphQLObjectType({
  *   }
  */
 
-
-//User Type
+// User Type
 const UserType = new GraphQLObjectType({
-  name: "User",
-  description: "A user who loves to run",
+  name: 'User',
+  description: 'A user who loves to run',
   interfaces: [nodeInterface],
   fields: () => ({
-    id: globalIdField("User", (obj) => obj.id),
-    user_id: { type: GraphQLInt },
-    username: { type: GraphQLString, description: "The name of the user" },
+    id: globalIdField('User', (obj) => obj.id),
+    username: { type: GraphQLString, description: 'The name of the user' },
     email: { type: GraphQLString },
     password: { type: GraphQLString },
     races: {
       type: raceConnection,
-      description: "The races for a specific user",
+      description: 'The races for a specific user',
       args: connectionArgs,
-      resolve: (user, args) =>
-        connectionFromArray(user.races.map(getRace), args),
+      resolve: (user, args) => {
+        connectionFromArray(user.races.map(getRace), args);
+      },
     },
   }),
 });
@@ -161,27 +158,24 @@ const UserType = new GraphQLObjectType({
  *   }
  */
 
-const queryType = new GraphQLObjectType({ //root query allows us to jump into the graph. Entry point to a specific node.
+const queryType = new GraphQLObjectType({ // root query allows us to jump into the graph. Entry point to a specific node.
   name: 'Query',
   fields: () => ({
     user: {
       type: UserType,
       args: { id: { type: GraphQLInt } },
-      resolve: (parentValue, args) => {
-        return axios.get(`http://localhost:3000/users/${args.id}`)
-          .then(res => res.data);
-      }
+      resolve: (parentValue, args) => axios.get(`http://localhost:3000/users/${args.id}`)
+        .then((res) => res.data),
     },
     node: nodeField,
-  })
+  }),
 });
 
-
-//============================================
+//= ===========================================
 /* Mutations need to be updated */
-//============================================
+//= ===========================================
 
-//Add User
+// Add User
 // const AddUserMutation = mutationWithClientMutationId({
 //   name: "addUser",
 //   inputFields: {
@@ -201,7 +195,7 @@ const queryType = new GraphQLObjectType({ //root query allows us to jump into th
 //   outputFields: {
 //     username: {
 //       type: UserType,
-//       resolve: (payload) => getUser(payload.userId), 
+//       resolve: (payload) => getUser(payload.userId),
 //     },
 //     email: {
 //       type: RaceType,
@@ -247,7 +241,6 @@ const queryType = new GraphQLObjectType({ //root query allows us to jump into th
 //   },
 // });
 
-
 // const mutationType = new GraphQLObjectType({
 //   name: "Mutation",
 //   fields: () => ({
@@ -261,6 +254,4 @@ module.exports = new GraphQLSchema({
   // mutation: mutationType
 });
 
-
-
-//go back and put user ID where its needed
+// go back and put user ID where its needed
