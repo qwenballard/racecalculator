@@ -54,11 +54,11 @@ function getRaces(id) {
       time: '20min',
     },
   ];
-  races.forEach(race => {
+  races.forEach((race) => {
     if (race.userId === id) {
       result.push(race.type);
     }
-  })
+  });
   return result;
 }
 
