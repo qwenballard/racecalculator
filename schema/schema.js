@@ -21,8 +21,8 @@ const {
 } = require('graphql-relay');
 
 const axios = require('axios');
+
 const {
-  getRaces,
   getUser,
   getRace,
 } = require('./helpers');
@@ -37,21 +37,14 @@ const { nodeInterface, nodeField } = nodeDefinitions(
   (globalId) => {
     const { type, id } = fromGlobalId(globalId);
     if (type === 'User') {
-      // this is where we need interact with our database to grab information
-      // return getUser(id);
       return getUser(id);
     }
     if (type === 'Race') {
-      // this is where we need interact with our database to grab information
-      // return getRace(id);
       return getRace(id);
     }
-    // if (type === "Goal") {
-    //   return getGoal(id);
-    // }
   },
   // we have a one to many relationships so how is this gonna work?
-  (obj) => (obj.type ? UserType : RaceType),
+  (obj) => (obj.races ? UserType : RaceType),
 );
 
 /**
@@ -82,7 +75,7 @@ const RaceType = new GraphQLObjectType({
   description: 'A race for a specific user',
   interfaces: [nodeInterface],
   fields: () => ({
-    id: globalIdField('Race', (obj) => obj.id),
+    id: globalIdField(),
     date: { type: GraphQLString },
     type: { type: GraphQLString },
     time: { type: GraphQLString },
@@ -131,7 +124,7 @@ const UserType = new GraphQLObjectType({
   description: 'A user who loves to run',
   interfaces: [nodeInterface],
   fields: () => ({
-    id: globalIdField('User', (obj) => obj.id),
+    id: globalIdField(),
     username: { type: GraphQLString, description: 'The name of the user' },
     email: { type: GraphQLString },
     password: { type: GraphQLString },
@@ -139,9 +132,8 @@ const UserType = new GraphQLObjectType({
       type: raceConnection,
       description: 'The races for a specific user',
       args: connectionArgs,
-      resolve: (user, args) => {
-        connectionFromArray(user.races.map(getRace), args);
-      },
+      resolve: (user, args) => axios.get(`http://localhost:3000/users/${user.id}/races`)
+        .then((res) => connectionFromArray([...res.data], args)),
     },
   }),
 });
@@ -158,7 +150,8 @@ const UserType = new GraphQLObjectType({
  *   }
  */
 
-const queryType = new GraphQLObjectType({ // root query allows us to jump into the graph. Entry point to a specific node.
+const queryType = new GraphQLObjectType({ 
+  // root query allows us to jump into the graph. Entry point to a specific node.
   name: 'Query',
   fields: () => ({
     user: {
@@ -167,7 +160,6 @@ const queryType = new GraphQLObjectType({ // root query allows us to jump into t
       resolve: (parentValue, args) => axios.get(`http://localhost:3000/users/${args.id}`)
         .then((res) => res.data),
     },
-    node: nodeField,
   }),
 });
 

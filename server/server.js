@@ -2,19 +2,18 @@ const express = require('express');
 const path = require('path');
 const { graphqlHTTP } = require('express-graphql');
 const expressPlayground = require('graphql-playground-middleware-express').default;
-const schema = require('../schema/schema')
 const cors = require('cors');
-var cookieParser = require("cookie-parser");
+const cookieParser = require('cookie-parser');
+const schema = require('../schema/schema');
 
 const PORT = 3333;
-
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
 
-const authController = require("./authController");
+const authController = require('./authController');
 
 app.get('/gql', expressPlayground({ endpoint: '/graphql' }));
 
@@ -24,8 +23,8 @@ app.use(
   '/graphql',
   graphqlHTTP({
     schema,
-    graphiql: false
-  })
+    graphiql: false,
+  }),
 );
 
 app.post('/login', authController.login, authController.setCookie, (req, res) => {
@@ -34,7 +33,7 @@ app.post('/login', authController.login, authController.setCookie, (req, res) =>
 });
 
 app.get('/profile', authController.verify, (req, res) => {
-  res.status(200).json(res.locals.user); //can we grab from the cookie? 
+  res.status(200).json(res.locals.user); // can we grab from the cookie?
 });
 
 app.get('/', (req, res) => {
@@ -47,5 +46,5 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`listening on port: ${PORT}`)
+  console.log(`listening on port: ${PORT}`);
 });
