@@ -23,6 +23,7 @@ const axios = require('axios');
 const {
   getUser,
   getRace,
+  getRaces,
 } = require('./helpers');
 
 /**
@@ -46,28 +47,6 @@ const { nodeInterface, nodeField } = nodeDefinitions(
   (obj) => (obj.races ? UserType : RaceType),
 );
 
-/**
- * We define our basic  goal, race, (ship) type.
- *
- * This implements the following type system shorthand:
- *   type Ship : Node {
- *     id: String!
- *     name: String
- *   }
- */
-
-// const GoalType = new GraphQLObjectType({
-//   name: "Goal",
-//   description: 'A goal for a specific user',
-//   interfaces: [nodeInterface],
-//   fields: () => ({
-//     userId: { type: GraphQLInt },
-//     id: globalIdField(),
-//     type: { type: GraphQLString },
-//     time: { type: GraphQLString },
-//   })
-// });
-
 // We need to make sure this type is connected to our User object
 const RaceType = new GraphQLObjectType({
   name: 'Race',
@@ -82,41 +61,9 @@ const RaceType = new GraphQLObjectType({
   }),
 });
 
-/**
- * We define a connection between a user and its races.
- * We define a connection between a faction and its ships.
- *
- * connectionType implements the following type system shorthand:
- *   type ShipConnection {
- *     edges: [ShipEdge]
- *     pageInfo: PageInfo!
- *   }
- *
- * connectionType has an edges field - a list of edgeTypes that implement the
- * following type system shorthand:
- *   type ShipEdge {
- *     cursor: String!
- *     node: Ship
- *   }
- */
-
 const { connectionType: raceConnection } = connectionDefinitions({
   nodeType: RaceType,
 });
-
-//  const { connectionType: goalConnection } = connectionDefinitions({
-//    nodeType: goalType,
-//  });
-
-/**
- * We define our basic user type.
- *
- * This implements the following type system shorthand:
- *   type Ship : Node {
- *     id: String!
- *     name: String
- *   }
- */
 
 // User Type
 const UserType = new GraphQLObjectType({
@@ -137,18 +84,6 @@ const UserType = new GraphQLObjectType({
     },
   }),
 });
-
-/**
- * This is the type that will be the root of our query, and the
- * entry point into our schema.
- *
- * This implements the following type system shorthand:
- *   type Query {
- *     rebels: Faction
- *     empire: Faction
- *     node(id: String!): Node
- *   }
- */
 
 const queryType = new GraphQLObjectType({
   // root query allows us to jump into the graph. Entry point to a specific node.
@@ -187,10 +122,8 @@ const AddRaceMutation = mutationWithClientMutationId({
   outputFields: {
     race: {
       type: RaceType,
-      resolve: (payload) => {
-        return axios.get(`http://localhost:3000/races/${payload.raceId}`)
-          .then((race) => race.data);
-      },
+      resolve: (payload) => axios.get(`http://localhost:3000/races/${payload.raceId}`)
+        .then((race) => race.data),
     },
     user: {
       type: UserType,
@@ -221,40 +154,64 @@ const AddRaceMutation = mutationWithClientMutationId({
     }),
 });
 
-// //Delete User
-// const RemoveUserMutation = mutationWithClientMutationId({
-//   name: "removeUser",
-//   inputFields: {
-//     shipName: {
-//       type: new GraphQLNonNull(GraphQLString),
-//     },
-//     factionId: {
-//       type: new GraphQLNonNull(GraphQLID),
-//     },
-//   },
-//   outputFields: {
-//     ship: {
-//       type: shipType,
-//       resolve: (payload) => getShip(payload.shipId),
-//     },
-//     faction: {
-//       type: factionType,
-//       resolve: (payload) => getFaction(payload.factionId),
-//     },
-//   },
-//   mutateAndGetPayload: ({ shipName, factionId }) => {
-//     const newShip = createShip(shipName, factionId);
-//     return {
-//       shipId: newShip.id,
-//       factionId,
-//     };
-//   },
-// });
+const DeleteRaceMutation = mutationWithClientMutationId({
+  name: 'deleteRace',
+  inputFields: {
+    id: { type: new GraphQLNonNull(GraphQLInt) },
+    userId: { type: new GraphQLNonNull(GraphQLInt) },
+  },
+  outputFields: {
+    deletedRaceId: {
+      type: RaceType,
+      resolve: ({ id }) => id,
+    },
+    user: {
+      type: UserType,
+      resolve: ({ userId }) => axios.get(`http://localhost:3000/users/${userId}`)
+        .then((user) => user.data),
+    },
+  },
+  mutateAndGetPayload: ({ id, userId }) => {
+    axios.delete(`http://localhost:3000/races/${id}`)
+      .then((res) => console.log(res.data));
+    return { id, userId };
+  },
+});
+
+const EditRaceMutation = mutationWithClientMutationId({
+  name: 'editRace',
+  inputFields: {
+    id: { type: new GraphQLNonNull(GraphQLInt) },
+    userId: { type: new GraphQLNonNull(GraphQLInt) },
+    type: { type: new GraphQLNonNull(GraphQLString) },
+    date: { type: new GraphQLNonNull(GraphQLString) },
+    time: { type: new GraphQLNonNull(GraphQLString) },
+  },
+  outputFields: {
+    editedRace: {
+      type: RaceType,
+      resolve: (payload) => payload,
+    },
+    user: {
+      type: UserType,
+      resolve: ({ userId }) => axios.get(`http://localhost:3000/users/${userId}`)
+        .then((user) => user.data),
+    },
+  },
+  mutateAndGetPayload: ({
+    id, userId, type, date, time,
+  }) => axios.patch(`http://localhost:3000/races/${id}`, {
+    id, userId, type, date, time,
+  })
+    .then((res) => res.data),
+});
 
 const mutationType = new GraphQLObjectType({
   name: 'Mutation',
   fields: () => ({
     addRace: AddRaceMutation,
+    deleteRace: DeleteRaceMutation,
+    editRace: EditRaceMutation,
   }),
 });
 

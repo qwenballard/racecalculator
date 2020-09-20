@@ -303,38 +303,10 @@
     },
     {
       "userId": 2,
-      "type": "5k",
-      "time": "19min",
-      "date": "march 31, 2020",
+      "type": "18k",
+      "time": "43min",
+      "date": "FEB 21 2020",
       "id": 36
-    },
-    {
-      "userId": 2,
-      "type": "5k",
-      "time": "19min",
-      "date": "march 31, 2020",
-      "id": 37
-    },
-    {
-      "userId": 5,
-      "type": "5k",
-      "time": "19min",
-      "date": "march 31, 2020",
-      "id": 38
-    },
-    {
-      "userId": 1,
-      "type": "10k",
-      "time": "42min",
-      "date": "march 31, 2020",
-      "id": 39
-    },
-    {
-      "userId": 1,
-      "type": "10k",
-      "time": "42min",
-      "date": "march 31, 2020",
-      "id": 40
     }
   ],
   "goals": [
