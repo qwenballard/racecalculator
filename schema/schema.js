@@ -4,8 +4,6 @@ const {
   GraphQLString,
   GraphQLInt,
   GraphQLNonNull,
-  GraphQLID,
-  GraphQLBoolean,
 } = require('graphql');
 
 const {
@@ -19,12 +17,6 @@ const {
 } = require('graphql-relay');
 
 const axios = require('axios');
-
-const {
-  getUser,
-  getRace,
-  getRaces,
-} = require('./helpers');
 
 /**
  * We get the node interface and field from the relay library.
@@ -220,4 +212,3 @@ module.exports = new GraphQLSchema({
   mutation: mutationType,
 });
 
-// go back and put user ID where its needed
