@@ -307,6 +307,181 @@
       "time": "43min",
       "date": "FEB 21 2020",
       "id": 36
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "march 31, 2020",
+      "id": 37
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "march 31, 2020",
+      "id": 38
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "march 31, 2020",
+      "id": 39
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "march 31, 2020",
+      "id": 40
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "march 31, 2020",
+      "id": 41
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "march 31, 2020",
+      "id": 42
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "march 31, 2020",
+      "id": 43
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "march 31, 2020",
+      "id": 44
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "march 31, 2020",
+      "id": 45
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "march 31, 2020",
+      "id": 46
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "april 21, 2020",
+      "id": 47
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "april 21, 2020",
+      "id": 48
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "april 21, 2020",
+      "id": 49
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "april 21, 2020",
+      "id": 50
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "april 21, 2020",
+      "id": 51
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "april 21, 2020",
+      "id": 52
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "april 21, 2020",
+      "id": 53
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "april 21, 2020",
+      "id": 54
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "april 21, 2020",
+      "id": 55
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "april 21, 2020",
+      "id": 56
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "april 21, 2020",
+      "id": 57
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "april 21, 2020",
+      "id": 58
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "april 21, 2020",
+      "id": 59
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "april 21, 2020",
+      "id": 60
+    },
+    {
+      "userId": 2,
+      "type": "55",
+      "time": "4hrs",
+      "date": "april 21, 2020",
+      "id": 61
     }
   ],
   "goals": [
@@ -330,6 +505,12 @@
     },
     {
       "userId": "1",
+      "id": 4,
+      "type": "half marathon",
+      "time": "1hr 31 min"
+    },
+    {
+      "userId": 3,
       "id": 4,
       "type": "half marathon",
       "time": "1hr 31 min"

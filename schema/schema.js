@@ -18,6 +18,7 @@ const {
 
 const axios = require('axios');
 
+const URL = 'http://localhost:3000';
 /**
  * We get the node interface and field from the relay library.
  *
@@ -29,10 +30,12 @@ const { nodeInterface, nodeField } = nodeDefinitions(
   (globalId) => {
     const { type, id } = fromGlobalId(globalId);
     if (type === 'User') {
-      return getUser(id);
+      return axios.get(`${URL}/users/${id}`)
+        .then((res) => res.data);
     }
     if (type === 'Race') {
-      return getRace(id);
+      return axios.get(`${URL}/races/${id}`)
+        .then((res) => res.data);
     }
   },
   // we have a one to many relationships so how is this gonna work?
@@ -50,6 +53,13 @@ const RaceType = new GraphQLObjectType({
     type: { type: GraphQLString },
     time: { type: GraphQLString },
     userId: { type: GraphQLInt },
+    user: {
+      type: UserType,
+      resolve(parent, args) {
+        return axios.get(`${URL}/users/${parent.userId}`)
+          .then((res) => res.data);
+      },
+    },
   }),
 });
 
@@ -57,7 +67,29 @@ const { connectionType: raceConnection } = connectionDefinitions({
   nodeType: RaceType,
 });
 
-// User Type
+const GoalType = new GraphQLObjectType({
+  name: 'Goal',
+  description: 'A runner\'s goal',
+  interfaces: [nodeInterface],
+  fields: () => ({
+    id: globalIdField(),
+    type: { type: GraphQLString, description: 'Type of race, i.e. 5k, 10, half-marathon...' },
+    userId: { type: GraphQLString },
+    time: { type: GraphQLString },
+    user: {
+      type: UserType,
+      resolve(parent, args) {
+        return axios.get(`${URL}/users/${parent.userId}`)
+          .then((res) => res.data);
+      },
+    },
+  }),
+});
+
+const { connectionType: goalConnection } = connectionDefinitions({
+  nodeType: GoalType,
+});
+
 const UserType = new GraphQLObjectType({
   name: 'User',
   description: 'A user who loves to run',
@@ -71,7 +103,14 @@ const UserType = new GraphQLObjectType({
       type: raceConnection,
       description: 'The races for a specific user',
       args: connectionArgs,
-      resolve: (user, args) => axios.get(`http://localhost:3000/users/${user.id}/races`)
+      resolve: (user, args) => axios.get(`${URL}/users/${user.id}/races`)
+        .then((res) => connectionFromArray([...res.data], args)),
+    },
+    goals: {
+      type: goalConnection,
+      description: 'The goals for a specific user',
+      args: connectionArgs,
+      resolve: (user, args) => axios.get(`${URL}/users/${user.id}/goals`)
         .then((res) => connectionFromArray([...res.data], args)),
     },
   }),
@@ -84,7 +123,13 @@ const queryType = new GraphQLObjectType({
     user: {
       type: UserType,
       args: { id: { type: GraphQLInt } },
-      resolve: (parentValue, args) => axios.get(`http://localhost:3000/users/${args.id}`)
+      resolve: (parentValue, args) => axios.get(`${URL}/users/${args.id}`)
+        .then((res) => res.data),
+    },
+    race: {
+      type: RaceType,
+      args: { id: { type: GraphQLInt } },
+      resolve: (parent, args) => axios.get(`${URL}/races/${args.id}`)
         .then((res) => res.data),
     },
   }),
@@ -94,53 +139,41 @@ const queryType = new GraphQLObjectType({
 /* Mutations need to be updated */
 //= ===========================================
 
-// Add User
 const AddRaceMutation = mutationWithClientMutationId({
   name: 'addRace',
   inputFields: {
-    type: {
-      type: new GraphQLNonNull(GraphQLString),
-    },
-    date: {
-      type: new GraphQLNonNull(GraphQLString),
-    },
-    time: {
-      type: new GraphQLNonNull(GraphQLString),
-    },
-    userId: {
-      type: new GraphQLNonNull(GraphQLInt),
-    },
+    type: { type: new GraphQLNonNull(GraphQLString) },
+    date: { type: new GraphQLNonNull(GraphQLString) },
+    time: { type: new GraphQLNonNull(GraphQLString) },
+    userId: { type: new GraphQLNonNull(GraphQLInt) },
   },
   outputFields: {
     race: {
       type: RaceType,
-      resolve: (payload) => axios.get(`http://localhost:3000/races/${payload.raceId}`)
+      resolve: (payload) => axios.get(`${URL}/races/${payload.raceId}`)
         .then((race) => race.data),
     },
     user: {
       type: UserType,
       resolve: (payload) => {
         console.log(payload);
-        return axios.get(`http://localhost:3000/users/${payload.userId}`)
+        return axios.get(`${URL}/users/${payload.userId}`)
           .then((user) => user.data);
       },
     },
   },
   mutateAndGetPayload: ({
     type, date, time, userId,
-  }) => axios.post('http://localhost:3000/races', {
+  }) => axios.post(`${URL}/races`, {
     userId,
     type,
     time,
     date,
   })
-    .then((race) => {
-      console.log(race.data.id);
-      return {
-        raceId: race.data.id,
-        userId: race.data.userId,
-      };
-    })
+    .then((race) => ({
+      raceId: race.data.id,
+      userId: race.data.userId,
+    }))
     .catch((err) => {
       console.log(err);
     }),
@@ -159,12 +192,12 @@ const DeleteRaceMutation = mutationWithClientMutationId({
     },
     user: {
       type: UserType,
-      resolve: ({ userId }) => axios.get(`http://localhost:3000/users/${userId}`)
+      resolve: ({ userId }) => axios.get(`${URL}/users/${userId}`)
         .then((user) => user.data),
     },
   },
   mutateAndGetPayload: ({ id, userId }) => {
-    axios.delete(`http://localhost:3000/races/${id}`)
+    axios.delete(`${URL}/races/${id}`)
       .then((res) => console.log(res.data));
     return { id, userId };
   },
@@ -186,13 +219,13 @@ const EditRaceMutation = mutationWithClientMutationId({
     },
     user: {
       type: UserType,
-      resolve: ({ userId }) => axios.get(`http://localhost:3000/users/${userId}`)
+      resolve: ({ userId }) => axios.get(`${URL}/users/${userId}`)
         .then((user) => user.data),
     },
   },
   mutateAndGetPayload: ({
     id, userId, type, date, time,
-  }) => axios.patch(`http://localhost:3000/races/${id}`, {
+  }) => axios.patch(`${URL}/races/${id}`, {
     id, userId, type, date, time,
   })
     .then((res) => res.data),
@@ -211,4 +244,3 @@ module.exports = new GraphQLSchema({
   query: queryType,
   mutation: mutationType,
 });
-

@@ -1,54 +1,38 @@
-input addRaceInput {
-  type: String!
-  date: String!
-  time: String!
-  userId: Int!
-  clientMutationId: String
+type Query {
+  user(id: Int): User
+  race(id: Int): Race
 }
 
-type addRacePayload {
-  race: Race
-  user: User
-  clientMutationId: String
-}
+"""A user who loves to run"""
+type User implements Node {
+  """The ID of an object"""
+  id: ID!
 
-input deleteRaceInput {
-  id: Int!
-  userId: Int!
-  clientMutationId: String
-}
+  """The name of the user"""
+  username: String
+  email: String
+  password: String
 
-type deleteRacePayload {
-  deletedRaceId: Race
-  user: User
-  clientMutationId: String
-}
+  """The races for a specific user"""
+  races(after: String, first: Int, before: String, last: Int): RaceConnection
 
-input editRaceInput {
-  id: Int!
-  userId: Int!
-  type: String!
-  date: String!
-  time: String!
-  clientMutationId: String
-}
-
-type editRacePayload {
-  editedRace: Race
-  user: User
-  clientMutationId: String
-}
-
-type Mutation {
-  addRace(input: addRaceInput!): addRacePayload
-  deleteRace(input: deleteRaceInput!): deleteRacePayload
-  editRace(input: editRaceInput!): editRacePayload
+  """The goals for a specific user"""
+  goals(after: String, first: Int, before: String, last: Int): GoalConnection
 }
 
 """An object with an ID"""
 interface Node {
   """The id of the object."""
   id: ID!
+}
+
+"""A connection to a list of items."""
+type RaceConnection {
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """A list of edges."""
+  edges: [RaceEdge]
 }
 
 """Information about pagination in a connection."""
@@ -66,8 +50,13 @@ type PageInfo {
   endCursor: String
 }
 
-type Query {
-  user(id: Int): User
+"""An edge in a connection."""
+type RaceEdge {
+  """The item at the end of the edge"""
+  node: Race
+
+  """A cursor for use in pagination"""
+  cursor: String!
 }
 
 """A race for a specific user"""
@@ -78,36 +67,82 @@ type Race implements Node {
   type: String
   time: String
   userId: Int
+  user: User
 }
 
 """A connection to a list of items."""
-type RaceConnection {
+type GoalConnection {
   """Information to aid in pagination."""
   pageInfo: PageInfo!
 
   """A list of edges."""
-  edges: [RaceEdge]
+  edges: [GoalEdge]
 }
 
 """An edge in a connection."""
-type RaceEdge {
+type GoalEdge {
   """The item at the end of the edge"""
-  node: Race
+  node: Goal
 
   """A cursor for use in pagination"""
   cursor: String!
 }
 
-"""A user who loves to run"""
-type User implements Node {
+"""A runner's goal"""
+type Goal implements Node {
   """The ID of an object"""
   id: ID!
 
-  """The name of the user"""
-  username: String
-  email: String
-  password: String
+  """Type of race, i.e. 5k, 10, half-marathon..."""
+  type: String
+  userId: String
+  time: String
+  user: User
+}
 
-  """The races for a specific user"""
-  races(after: String, first: Int, before: String, last: Int): RaceConnection
+type Mutation {
+  addRace(input: addRaceInput!): addRacePayload
+  deleteRace(input: deleteRaceInput!): deleteRacePayload
+  editRace(input: editRaceInput!): editRacePayload
+}
+
+type addRacePayload {
+  race: Race
+  user: User
+  clientMutationId: String
+}
+
+input addRaceInput {
+  type: String!
+  date: String!
+  time: String!
+  userId: Int!
+  clientMutationId: String
+}
+
+type deleteRacePayload {
+  deletedRaceId: Race
+  user: User
+  clientMutationId: String
+}
+
+input deleteRaceInput {
+  id: Int!
+  userId: Int!
+  clientMutationId: String
+}
+
+type editRacePayload {
+  editedRace: Race
+  user: User
+  clientMutationId: String
+}
+
+input editRaceInput {
+  id: Int!
+  userId: Int!
+  type: String!
+  date: String!
+  time: String!
+  clientMutationId: String
 }
