@@ -482,6 +482,20 @@
       "time": "4hrs",
       "date": "april 21, 2020",
       "id": 61
+    },
+    {
+      "userId": 2,
+      "type": "ultra",
+      "time": "4 hrs",
+      "date": "feb 27, 2019",
+      "id": 62
+    },
+    {
+      "userId": 3,
+      "type": "ultra",
+      "time": "4 hrs",
+      "date": "feb 27, 2019",
+      "id": 63
     }
   ],
   "goals": [
